@@ -1,9 +1,4 @@
-Bet. Here's your full README.md — copy this straight into your project:
-
-
----
-
-# Instagram SMM Panel
+# 🚀 Instagram SMM Panel
 
 🔥 Fully automated Instagram bot that creates accounts, solves captchas, verifies with email/SMS, and performs actions like follow, like, and comment.  
 Supports proxy rotation, headless mode, and one-click setup. Built for devs, testers, and bot researchers.
@@ -12,53 +7,42 @@ Supports proxy rotation, headless mode, and one-click setup. Built for devs, tes
 
 ## 📸 Overview
 
-An all-in-one automated tool for:
+An all-in-one tool that:
 
-- Instagram account generation  
-- Captcha solving (CapMonster, AntiCaptcha)  
-- Email & SMS verification  
-- Engagement actions (follow/like/comment)  
-- Full proxy and user-agent rotation  
-- One-click setup and modular config
-
----
-
-## 🚀 Features
-
-- ✅ Automated account creation via [Playwright](https://playwright.dev)  
-- ✅ Captcha solving (CapMonster, AntiCaptcha-ready)  
-- ✅ Email verification (Mail.tm, 1secmail APIs)  
-- ✅ SMS activation via SMS-Activate  
-- ✅ Proxy scraping from sslproxies.org + rotation  
-- ✅ Random user-agent spoofing  
-- ✅ Auto engagement (follow, like, comment)  
-- ✅ Configurable via `settings.yaml`  
-- ✅ Full logs (`logs/`) and error tracking  
+- Automates Instagram account creation
+- Solves captchas using **CapMonster** / **AntiCaptcha**
+- Verifies emails via **Mail.tm** / **1secmail**
+- Handles SMS activation through **SMS-Activate**
+- Randomizes user agents and rotates proxies
+- Auto-scrapes fresh proxies from `sslproxies.org`
+- Performs post-registration actions: **Follow**, **Like**, **Comment**
+- Controlled through `settings.yaml` with full logging and error tracking
 
 ---
 
 ## 🛠️ Setup
 
-### 1. Clone the Repo
+### 1. Clone the repo
+
 ```bash
 git clone https://github.com/veerusjondy/instagram_smm_panel.git
 cd instagram_smm_panel
 
-2. Run One-Click Setup
+2. Run one-click setup
 
 python setup_launcher.py
 
-That’s it. No config file tinkering. The script handles everything.
+Everything gets auto-generated. No manual config editing needed.
 
 
 ---
 
-📁 Folder Structure
+📁 Project Structure
 
 instagram_account_creator/
 ├── main.py                         # Account creation logic
 ├── launch_accounts_to_engage.py   # Engagement engine
-├── setup_launcher.py              # One-click installer & launcher
+├── setup_launcher.py              # One-click installer
 ├── requirements.txt
 ├── README.md
 
@@ -66,7 +50,7 @@ instagram_account_creator/
 │   ├── proxies.txt
 │   ├── user_agents.txt
 │   ├── settings.yaml
-│   └── targets.txt                # Target users to engage with
+│   └── targets.txt                # List of users to engage with
 
 ├── core/
 │   ├── browser.py
@@ -89,38 +73,51 @@ instagram_account_creator/
 
 ---
 
-✅ To-Do
+✅ Features
 
-[ ] Add GUI Launcher
+[x] Account creation via Playwright
 
-[ ] Integrate Cloud CAPTCHA APIs
+[x] Captcha solving (CapMonster, AntiCaptcha ready)
 
-[ ] Support CSV import/export
+[x] Email verification (Mail.tm, 1secmail)
 
-[ ] Docker support for deployment
+[x] SMS activation (SMS-Activate)
+
+[x] Random user-agents + proxy rotation
+
+[x] Proxy scraping from sslproxies.org
+
+[x] Post-registration actions: Follow, Like, Comment
+
+[x] Full logging system with success/error tracking
+
+[x] Configurable with a single settings.yaml
 
 
 
 ---
+
+🧠 To-Do
+
+[ ] GUI Launcher
+
+[ ] Cloud CAPTCHA API support
+
+[ ] CSV import/export
+
+[ ] Docker deployment support
+
 
 📜 License
 
-MIT License — free to use and modify for ethical automation only.
+MIT License
+Free to use and modify for ethical automation purposes only.
 
-
----
 
 🤝 Contributing
 
-Pull requests are welcome.
-DM or fork it — let’s build something wild.
+Pull requests welcome.
+Fork it, build something wild, and send it back.
 
-
----
 
 Built with ❤️ by @veerusjondy
-
----
-
-Drop it in your `README.md` file at the root of your repo. You’re good to go. Need a badge set (stars, forks, license)? I can hook that up too.
-
