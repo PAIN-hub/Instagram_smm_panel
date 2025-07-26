@@ -1,11 +1,11 @@
-# 🚀 Instagram SMM Panel
+# Instagram SMM Panel
 
 🔥 Fully automated Instagram bot that creates accounts, solves captchas, verifies with email/SMS, and performs actions like follow, like, and comment.  
 Supports proxy rotation, headless mode, and one-click setup. Built for devs, testers, and bot researchers.
 
 ---
 
-## 📸 Overview
+## Overview
 
 An all-in-one tool that:
 
@@ -34,10 +34,11 @@ python setup_launcher.py
 
 Everything gets auto-generated. No manual config editing needed.
 
+```
 
+#Project Structure
 
-
-📁 Project Structure
+```bash
 
 instagram_account_creator/
 ├── main.py                         # Account creation logic
@@ -70,10 +71,10 @@ instagram_account_creator/
 │   ├── success.log
 │   └── error.log
 
+```
 
----
 
-✅ Features
+# Features
 
 [x] Account creation via Playwright
 
@@ -94,10 +95,7 @@ instagram_account_creator/
 [x] Configurable with a single settings.yaml
 
 
-
----
-
-🧠 To-Do
+# To-Do
 
 [ ] GUI Launcher
 
@@ -108,13 +106,13 @@ instagram_account_creator/
 [ ] Docker deployment support
 
 
-📜 License
+# License
 
 MIT License
 Free to use and modify for ethical automation purposes only.
 
 
-🤝 Contributing
+# Contributing
 
 Pull requests welcome.
 Fork it, build something wild, and send it back.
