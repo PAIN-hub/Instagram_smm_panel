@@ -1,51 +1,54 @@
-# Instagram_smm_panel
-🔥 Fully automated Instagram bot that creates accounts, solves captchas, verifies with email/SMS, and performs actions like follow, like, and comment. Supports proxy rotation, headless mode, and one-click setup. Built for devs, testers, and bot researchers. Plug it in and let the matrix do the work.
-
-
-Instagram Account Creation & Engagement Bot
-
-Automated bot to generate and manage Instagram accounts, solve captchas, verify with email/SMS, and perform actions like follow/like/comment — all from one launch script.
+Bet. Here's your full README.md — copy this straight into your project:
 
 
 ---
 
-🚀 Features
+# Instagram SMM Panel
 
-Account creation via browser automation (Playwright)
-
-Captcha solving (CapMonster, AntiCaptcha ready)
-
-Email verification (Mail.tm, 1secmail)
-
-SMS activation (SMS-Activate)
-
-Random user agents + proxy rotation
-
-Auto proxy scraping from sslproxies.org
-
-Post-registration actions (follow/like/comment)
-
-Configurable via settings.yaml
-
-Full logs & error tracking
-
-
+🔥 Fully automated Instagram bot that creates accounts, solves captchas, verifies with email/SMS, and performs actions like follow, like, and comment.  
+Supports proxy rotation, headless mode, and one-click setup. Built for devs, testers, and bot researchers.
 
 ---
 
-🛠 Setup
+## 📸 Overview
 
-1. Clone Repo
+An all-in-one automated tool for:
 
+- Instagram account generation  
+- Captcha solving (CapMonster, AntiCaptcha)  
+- Email & SMS verification  
+- Engagement actions (follow/like/comment)  
+- Full proxy and user-agent rotation  
+- One-click setup and modular config
+
+---
+
+## 🚀 Features
+
+- ✅ Automated account creation via [Playwright](https://playwright.dev)  
+- ✅ Captcha solving (CapMonster, AntiCaptcha-ready)  
+- ✅ Email verification (Mail.tm, 1secmail APIs)  
+- ✅ SMS activation via SMS-Activate  
+- ✅ Proxy scraping from sslproxies.org + rotation  
+- ✅ Random user-agent spoofing  
+- ✅ Auto engagement (follow, like, comment)  
+- ✅ Configurable via `settings.yaml`  
+- ✅ Full logs (`logs/`) and error tracking  
+
+---
+
+## 🛠️ Setup
+
+### 1. Clone the Repo
+```bash
 git clone https://github.com/veerusjondy/instagram_smm_panel.git
-
-cd Instagram_smm_panel
+cd instagram_smm_panel
 
 2. Run One-Click Setup
 
 python setup_launcher.py
 
-That’s it. No manual file editing. Everything needed will auto-generate & run.
+That’s it. No config file tinkering. The script handles everything.
 
 
 ---
@@ -53,25 +56,24 @@ That’s it. No manual file editing. Everything needed will auto-generate & run.
 📁 Folder Structure
 
 instagram_account_creator/
-│
-├── main.py                      # Account creation logic
-├── launch_accounts_to_engage.py# Follow, Like, Comment engine
-├── setup_launcher.py            # One-click installer & launcher
+├── main.py                         # Account creation logic
+├── launch_accounts_to_engage.py   # Engagement engine
+├── setup_launcher.py              # One-click installer & launcher
 ├── requirements.txt
 ├── README.md
-│
+
 ├── config/
 │   ├── proxies.txt
 │   ├── user_agents.txt
 │   ├── settings.yaml
-│   └── targets.txt              # List of users to engage with
-│
+│   └── targets.txt                # Target users to engage with
+
 ├── core/
 │   ├── browser.py
 │   ├── account_creator.py
 │   ├── human_behavior.py
 │   └── dashboard.py
-│
+
 ├── utils/
 │   ├── captcha_solver.py
 │   ├── sms_handler.py
@@ -79,7 +81,7 @@ instagram_account_creator/
 │   ├── logger.py
 │   ├── proxy_scraper.py
 │   └── proxy_generator.py
-│
+
 ├── logs/
 │   ├── success.log
 │   └── error.log
@@ -103,16 +105,22 @@ instagram_account_creator/
 
 📜 License
 
-MIT License — free to use and modify for ethical automation.
+MIT License — free to use and modify for ethical automation only.
 
 
 ---
 
-🤝 Contribute
+🤝 Contributing
 
-PRs welcome! DM or fork and flex what you got.
+Pull requests are welcome.
+DM or fork it — let’s build something wild.
 
 
 ---
 
 Built with ❤️ by @veerusjondy
+
+---
+
+Drop it in your `README.md` file at the root of your repo. You’re good to go. Need a badge set (stars, forks, license)? I can hook that up too.
+
