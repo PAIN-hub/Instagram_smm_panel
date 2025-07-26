@@ -28,13 +28,18 @@ An all-in-one tool that:
 git clone https://github.com/veerusjondy/instagram_smm_panel.git
 cd instagram_smm_panel
 
-2. Run one-click setup
+```
+
+## 2. Run one-click setup
+
+```bash
 
 python setup_launcher.py
 
-Everything gets auto-generated. No manual config editing needed.
-
 ```
+
+## Everything gets auto-generated. No manual config editing needed.
+
 
 ## Project Structure
 
