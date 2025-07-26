@@ -36,7 +36,7 @@ Everything gets auto-generated. No manual config editing needed.
 
 ```
 
-#Project Structure
+## Project Structure
 
 ```bash
 
@@ -74,7 +74,7 @@ instagram_account_creator/
 ```
 
 
-# Features
+## Features
 
 [x] Account creation via Playwright
 
@@ -106,13 +106,13 @@ instagram_account_creator/
 [ ] Docker deployment support
 
 
-# License
+## License
 
 MIT License
 Free to use and modify for ethical automation purposes only.
 
 
-# Contributing
+## Contributing
 
 Pull requests welcome.
 Fork it, build something wild, and send it back.
