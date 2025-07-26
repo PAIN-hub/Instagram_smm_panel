@@ -1,0 +1,15 @@
+captcha_service: capmonster
+captcha_api_key: "YOUR_CAPMONSTER_API_KEY"
+
+sms_service: 5sim
+sms_api_key: "YOUR_5SIM_API_KEY"
+
+email_service: 1secmail  # or mailtm if you switch later
+
+use_random_user_agent: true
+rotate_proxies: true
+default_proxy: ""  # Leave empty or set your base proxy here
+
+wait_range_seconds:
+  min: 2
+  max: 6
