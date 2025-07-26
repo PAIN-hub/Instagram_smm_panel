@@ -35,8 +35,7 @@ python setup_launcher.py
 Everything gets auto-generated. No manual config editing needed.
 
 
-```bash
-
+```
 📁 Project Structure
 
 instagram_account_creator/
