@@ -25,7 +25,7 @@ Instagram SMM Panel is an all-in-one automation tool that:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/veerusjondy/instagram_smm_panel.git
+git clone https://github.com/pain-hub/instagram_smm_panel.git
 cd instagram_smm_panel
 ```
 
