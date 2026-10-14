@@ -8,3 +8,4 @@ python-dotenv>=1.0.1
 # Django
 django>=5.0,<5.2
 django-cors-headers>=4.0.0
+gunicorn>=21.2.0

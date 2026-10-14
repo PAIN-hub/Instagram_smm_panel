@@ -1,0 +1,33 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smm_panel_web
+    command: gunicorn --bind 0.0.0.0:8000 --workers 3 smm_panel_project.wsgi:application
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./db.sqlite3:/app/db.sqlite3
+      - ./session_cookies:/app/session_cookies
+      - ./logs:/app/logs
+    environment:
+      - DJANGO_ALLOWED_HOSTS=*
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smm_panel_worker
+    command: python manage.py run_worker
+    volumes:
+      - ./db.sqlite3:/app/db.sqlite3
+      - ./session_cookies:/app/session_cookies
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - web
+    restart: unless-stopped

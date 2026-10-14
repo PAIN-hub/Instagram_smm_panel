@@ -1,0 +1,13 @@
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+session_cookies/
+logs/
+.git/
+.gitignore
+.dockerignore
+.agents/
+.gemini/

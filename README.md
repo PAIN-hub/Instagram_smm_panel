@@ -4,6 +4,7 @@
   <img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python Versions" />
   <img src="https://img.shields.io/badge/Django-5.0%20%7C%205.1-092E20?style=for-the-badge&logo=django&logoColor=white" alt="Django Versions" />
   <img src="https://img.shields.io/badge/Playwright-Automated%20Chromium-2EAD5F?style=for-the-badge&logo=playwright&logoColor=white" alt="Playwright" />
+  <img src="https://img.shields.io/badge/Docker-Compose%20Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Ready" />
   <img src="https://img.shields.io/badge/Tests-8%20Passed-success?style=for-the-badge&logo=pytest&logoColor=white" alt="Tests" />
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="MIT License" />
 </p>
@@ -19,6 +20,7 @@ Features session cookie persistence, atomic queue processing, live console strea
 - [🏗️ System Architecture](#️-system-architecture)
 - [🛠️ Tech Stack](#️-tech-stack)
 - [🚀 Quick Start Guide](#-quick-start-guide)
+  - [🐳 1-Click Docker Deployment (Recommended)](#-1-click-docker-deployment-recommended)
   - [Prerequisites](#prerequisites)
   - [Installation (Linux / macOS)](#installation-linux--macos)
   - [Installation (Windows)](#installation-windows)
@@ -83,6 +85,28 @@ graph TD
 ---
 
 ## 🚀 Quick Start Guide
+
+### 🐳 1-Click Docker Deployment (Recommended)
+
+Run the entire application (Web Dashboard + Playwright Background Worker) with a single command without worrying about Python versions, system libraries, or browser dependencies:
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/pain-hub/instagram_smm_panel.git
+cd instagram_smm_panel
+
+# 2. Build and run containers in detached mode
+docker compose up -d --build
+```
+
+- **Dashboard**: Open [http://localhost:8000](http://localhost:8000)
+- **View Real-Time Logs**: `docker compose logs -f`
+- **Stop Containers**: `docker compose down`
+
+> [!TIP]
+> The Docker configuration automatically mounts `./db.sqlite3`, `./session_cookies`, and `./logs` into the container, guaranteeing full data persistence across container updates and restarts.
+
+---
 
 ### Prerequisites
 - Python 3.10, 3.11, 3.12, or 3.13

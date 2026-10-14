@@ -2,6 +2,24 @@
 
 This document provides complete instructions for configuring, initializing, and running the Instagram SMM Panel application.
 
+## 🐳 1-Click Docker Compose Deployment (Recommended)
+
+If you have Docker and Docker Compose installed, you can launch the complete stack (Web Dashboard + Playwright Background Worker) with zero manual environment configuration:
+
+```bash
+# 1. Clone or navigate to the repository directory
+cd Instagram_smm_panel
+
+# 2. Build and launch all services in detached mode
+docker compose up -d --build
+```
+
+- **Web Dashboard**: Access at [http://localhost:8000](http://localhost:8000)
+- **Live Logs**: `docker compose logs -f`
+- **Stop Stack**: `docker compose down`
+
+All data, session cookies, and database state are automatically persisted in `./db.sqlite3`, `./session_cookies`, and `./logs`.
+
 ---
 
 ## 1. System Requirements
