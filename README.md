@@ -1,16 +1,16 @@
 # Instagram SMM Panel
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python Versions" />
-  <img src="https://img.shields.io/badge/Django-5.0%20%7C%206.0-092E20?style=for-the-badge&logo=django&logoColor=white" alt="Django Versions" />
-  <img src="https://img.shields.io/badge/Playwright-1.60.0-2EAD5F?style=for-the-badge&logo=playwright&logoColor=white" alt="Playwright" />
+  <img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python Versions" />
+  <img src="https://img.shields.io/badge/Django-5.0%20%7C%205.1-092E20?style=for-the-badge&logo=django&logoColor=white" alt="Django Versions" />
+  <img src="https://img.shields.io/badge/Playwright-Automated%20Chromium-2EAD5F?style=for-the-badge&logo=playwright&logoColor=white" alt="Playwright" />
+  <img src="https://img.shields.io/badge/Tests-8%20Passed-success?style=for-the-badge&logo=pytest&logoColor=white" alt="Tests" />
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="MIT License" />
-  <img src="https://img.shields.io/badge/Code%20Style-Black-000000?style=for-the-badge" alt="Code Style: Black" />
 </p>
 
-An enterprise-grade, fully automated Instagram SMM (Social Media Marketing) Panel and bot manager. Built on top of **Django** and **Playwright**, the system provides a robust dashboard UI to orchestrate accounts creation, solve CAPTCHAs, manage SMS verifications, maintain rotating proxy pools, and schedule engagement actions (follows, likes, and comments).
+An enterprise-grade, fully automated Instagram Social Media Marketing (SMM) Panel and bot management system. Engineered with **Django** and **Playwright**, the panel provides an interactive dashboard interface to orchestrate automated account registration, solve CAPTCHAs, verify SMS numbers, maintain live-monitored rotating proxy pools, and automate engagement actions (Follows, Likes, and Comments).
 
-Designed with session cookie persistence, a database-backed task queue, dynamic credentials settings, and interactive live console streaming directly in the browser interface.
+Features session cookie persistence, atomic queue processing, live console streaming, anti-bot detection evasion, and an Instagram-specific proxy health analyzer.
 
 ---
 
@@ -20,12 +20,14 @@ Designed with session cookie persistence, a database-backed task queue, dynamic 
 - [🛠️ Tech Stack](#️-tech-stack)
 - [🚀 Quick Start Guide](#-quick-start-guide)
   - [Prerequisites](#prerequisites)
-  - [Installation Steps](#installation-steps)
+  - [Installation (Linux / macOS)](#installation-linux--macos)
+  - [Installation (Windows)](#installation-windows)
+  - [Automated Tests](#automated-tests)
 - [⚙️ Configuration Parameters](#️-configuration-parameters)
+- [🌐 Proxy Health & Handshake Ping System](#-proxy-health--handshake-ping-system)
 - [📂 Project Structure](#-project-structure)
-- [🔒 Security & Best Practices](#-security--best-practices)
-- [🖥️ UI Overview](#️-ui-overview)
-- [📦 Production Deployment](#-production-deployment)
+- [🔒 Security & Concurrency Design](#-security--concurrency-design)
+- [📦 Production Deployment & Systemd](#-production-deployment--systemd)
 - [🤝 Contributing](#-contributing)
 - [⚖️ License](#️-license)
 
@@ -33,13 +35,14 @@ Designed with session cookie persistence, a database-backed task queue, dynamic 
 
 ## ✨ Key Features
 
-* **🖥️ Interactive Dashboard**: Monitor key telemetry (active proxies, account health ratio, completed/running tasks) visually with **Chart.js** diagrams.
-* **🍪 Session State Persistence**: Caches browser contexts and session cookies inside `session_cookies/` to avoid repetitive sign-in queries and bypass Instagram verification check blocks.
-* **⚡ DB-Backed Queue Worker**: A multithreaded queue processor that handles browser automation in the background. Submit tasks via the UI and track live outputs.
-* **📝 Live Stream Console**: Streams automated actions and Playwright process logs directly to a dark console container on the web page.
-* **📊 Smart Proxy Rotator**: Scrape fresh proxy pools, verify connection speeds against Instagram endpoints, and rotate active IP configurations automatically.
-* **🤖 Anti-Detection Design**: Integrates human typing behavior (variable keystroke delay) and random User-Agent rotation.
-* **📂 Bulk CSV Manager**: Import existing account details in bulk or download the complete system registration roster in a click.
+* **🖥️ Real-Time Telemetry Dashboard**: Monitor account health metrics, active rotating proxies, and task queue distributions with **Chart.js** data visualizations.
+* **⚡ Atomic DB-Backed Queue Worker**: Multithreaded background queue with atomic task claiming (`UPDATE ... WHERE status='pending'`), completely preventing double-dispatch race conditions and SQLite database lockups.
+* **🌐 Instagram Handshake Proxy Checker**: Live latency measurement and anti-ban classifier (`Clean / Fast`, `Slow Response`, `IG Blocked`, `Offline`). The queue worker automatically filters out blacklisted IPs to protect accounts.
+* **🤖 Anti-Detection Stealth Engine**: Automated Chromium/Chrome engine with human-simulated typing speeds, randomized User-Agents, mobile device viewport emulation, and `navigator.webdriver = undefined` evasion.
+* **📩 Resilient Email & SMS Verification**: Integrated with **Mail.tm** REST API with automatic fallback, dual extraction of verification links and 6-digit confirmation codes, paired with **5sim** / **SMS-Activate** phone dispatchers.
+* **🍪 Session Cookie Persistence**: Caches browser storage states in `session_cookies/` to preserve sessions, eliminate repetitive logins, and bypass checkpoint intercepts.
+* **📝 Live Stream Console**: Streams automated Playwright execution logs directly to an in-browser streaming terminal container.
+* **📂 Bulk Data Management**: Import existing accounts in bulk via CSV or export your entire roster in a single click.
 
 ---
 
@@ -47,41 +50,46 @@ Designed with session cookie persistence, a database-backed task queue, dynamic 
 
 ```mermaid
 graph TD
-    UI[Web UI / Templates] -->|Enqueue Jobs| DB[(SQLite / PostgreSQL)]
-    UI -->|Configure Settings| Settings[Dynamic Global Settings]
-    DB -->|Fetch Pending Tasks| Worker[Daemon Queue Worker]
-    Worker -->|Configure Context| Browser[Playwright Browser Launcher]
-    Browser -->|Use Scraped IPs| ProxyPool[Proxy Scraper / Tester]
-    Browser -->|Autofill Credentials| AccountCreator[Instagram account creator]
+    UI[Web UI Dashboard] -->|Enqueue Jobs| DB[(SQLite / PostgreSQL)]
+    UI -->|Adjust Credentials| Settings[Global Settings Store]
+    UI -->|Manual Ping| ProxyChecker[Proxy Latency & Health Engine]
+    
+    DB -->|Atomic Claim| Worker[Background Queue Worker Daemon]
+    
+    Worker -->|Configure Context| Browser[Playwright Stealth Engine]
+    Browser -->|Rotate Filtered IPs| ProxyPool[(Active Clean Proxies)]
+    Browser -->|Autofill Credentials| AccountCreator[Registration Flow]
     Browser -->|Follow / Like / Comment| SocialActions[Social Action Engine]
-    AccountCreator -->|Solve CAPTCHA| CapSolve[CapMonster / AntiCaptcha API]
-    AccountCreator -->|Retrieve SMS| SMS[5sim / SMS-Activate API]
-    AccountCreator -->|Verify Link| Email[1secmail API Inbox Polling]
-    Worker -->|Write Logs| DB
-    UI -->|Poll Logs API| DB
+    
+    AccountCreator -->|Solve ReCAPTCHA| CapSolve[CapMonster / AntiCaptcha API]
+    AccountCreator -->|Fetch SMS Code| SMS[5sim / SMS-Activate API]
+    AccountCreator -->|Poll Code / Link| Email[Mail.tm REST Inbox]
+    
+    Worker -->|Stream Execution Logs| DB
+    UI -->|Polling Telemetry| DB
 ```
 
 ---
 
 ## 🛠️ Tech Stack
 
-* **Backend Framework**: Django 5.x / 6.x
-* **Browser Automation**: Playwright Python
-* **HTML Processing**: BeautifulSoup4 & requests
-* **Frontend Design**: Vanilla CSS (Responsive Flexbox/Grid layout with custom scrollbars)
-* **Visualizations**: Chart.js
-* **Database**: SQLite (Default) or PostgreSQL
+* **Backend**: Django 5.x / Python 3.10 - 3.13+
+* **Browser Automation**: Playwright Python (Chromium / Google Chrome with stealth flags)
+* **HTTP & Scraping**: `requests`, `beautifulsoup4`
+* **Database**: SQLite (Development) / PostgreSQL (Production)
+* **Frontend UI**: Vanilla Responsive CSS (white-mode palette), Chart.js
+* **Worker Execution**: Concurrent ThreadPool & Daemon Subprocess
 
 ---
 
 ## 🚀 Quick Start Guide
 
 ### Prerequisites
-- Python 3.10, 3.11, or 3.12
+- Python 3.10, 3.11, 3.12, or 3.13
 - SQLite3 (installed by default with Python)
-- Firefox (`/usr/bin/firefox` pre-installed on Debian/Ubuntu environments)
+- Google Chrome or Chromium (auto-detected or installed via Playwright)
 
-### Installation Steps
+### Installation (Linux / macOS)
 
 1. **Clone the Repository**
    ```bash
@@ -89,49 +97,114 @@ graph TD
    cd instagram_smm_panel
    ```
 
-2. **Install Dependencies**
-   It is recommended to use a virtual environment. Install packages using pip:
+2. **Create and Activate a Virtual Environment**
    ```bash
-   python3 -m pip install -r requirements.txt
-   ```
-   *(On Debian/Kali Linux systems enforcing PEP 668, append the `--break-system-packages` flag or run inside a configured venv).*
-
-3. **Initialize the Database**
-   Generate database schemas and apply the migration scripts:
-   ```bash
-   python3 manage.py makemigrations panel
-   python3 manage.py migrate
+   python3 -m venv venv
+   source venv/bin/activate
    ```
 
-4. **Launch the Panel Webserver**
-   Start the Django development server:
+3. **Install Dependencies**
    ```bash
-   python3 manage.py runserver 127.0.0.1:8000
+   pip install -r requirements.txt
    ```
-   Access the dashboard at [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
-5. **Launch the Background Worker Daemon**
-   To execute the browser automation tasks enqueued by the dashboard, launch the worker process in a separate terminal window:
+4. **Install Browser Engine (Optional if Google Chrome is installed)**
    ```bash
-   python3 manage.py run_worker
+   playwright install chromium
    ```
+
+5. **Apply Database Migrations**
+   ```bash
+   python manage.py makemigrations panel
+   python manage.py migrate
+   ```
+
+6. **Start the Web Dashboard**
+   ```bash
+   python manage.py runserver 127.0.0.1:8000
+   ```
+   Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.
+
+7. **Launch the Dedicated Queue Worker (Optional Terminal)**
+   ```bash
+   python manage.py run_worker
+   ```
+
+### Installation (Windows)
+
+```cmd
+:: 1. Navigate to directory
+cd Instagram_smm_panel
+
+:: 2. Initialize Virtual Environment
+python -m venv venv
+venv\Scripts\activate
+
+:: 3. Install packages
+pip install -r requirements.txt
+
+:: 4. Install Playwright binaries
+playwright install chromium
+
+:: 5. Initialize Database
+python manage.py makemigrations panel
+python manage.py migrate
+
+:: 6. Launch Server
+python manage.py runserver 127.0.0.1:8000
+```
+
+### Automated Tests
+
+Verify that your environment, database, and browser launcher are operational:
+
+```bash
+python manage.py test
+```
+
+Expected output:
+```text
+System check identified no issues (0 silenced).
+........
+----------------------------------------------------------------------
+Ran 8 tests in 3.973s
+
+OK
+```
 
 ---
 
 ## ⚙️ Configuration Parameters
 
-Navigate to the **Settings** view in the sidebar to configure the dynamic parameters:
+Access the **Settings** view in the sidebar to configure runtime parameters:
 
-| Category | Parameter | Description |
-| :--- | :--- | :--- |
-| **CAPTCHA** | `Solver Provider` | Select CapMonster or AntiCaptcha. |
-| | `API Secret Key` | API key from your solving provider dashboard. |
-| **SMS** | `SMS Provider` | Select 5sim or SMS-Activate. |
-| | `API Auth Token` | Token to acquire and read verification phone numbers. |
-| **Automation** | `Browser Engine` | Select **Firefox** (Default) or **Chromium**. |
-| | `Local Browser Path` | Absolute path (e.g. `/usr/bin/firefox`). Useful if Playwright downloads time out. |
-| | `Delay Range` | Set minimum and maximum delays (seconds) between human actions. |
-| | `Headless Mode` | Enable to hide browser window during operations. |
+| Category | Parameter | Default | Description |
+| :--- | :--- | :--- | :--- |
+| **Automation** | `Browser Engine` | `chromium` | **Chromium / Google Chrome (Recommended)**. High stability and anti-detection. |
+| | `Local Browser Path` | *(Empty)* | Leave blank for auto-discovery (`/usr/bin/google-chrome`, system Chromium). |
+| | `Headless Mode` | `True` | Run headless for background efficiency or `False` to watch automation live. |
+| | `Delay Range` | `2` to `6` sec | Randomized delay range between keystrokes and button clicks. |
+| **Email** | `Email Provider` | `mailtm` | **Mail.tm (Recommended)** or 1secmail. |
+| **CAPTCHA** | `Solver Provider` | `capmonster` | Select CapMonster or AntiCaptcha. |
+| | `API Secret Key` | *(Custom)* | Provider API key. |
+| **SMS** | `SMS Provider` | `5sim` | Select 5sim or SMS-Activate. |
+| | `API Auth Token` | *(Custom)* | Bearer authorization token for phone procurement. |
+| **Proxies** | `Rotate Proxies` | `True` | Automatically rotate active clean proxies on each automation job. |
+
+---
+
+## 🌐 Proxy Health & Handshake Ping System
+
+Instagram blocks datacenter IPs and unverified public proxies aggressively. The panel includes a dedicated handshake testing engine:
+
+* **Live Latency Benchmark**: Tests each proxy against `https://www.instagram.com` with real mobile headers.
+* **Auto-Classification**:
+  - `🟢 Clean / Fast`: Latency < 2.5s, HTTP 200, no challenge prompts.
+  - `🟡 Slow Response`: Response time >= 2.5s.
+  - `🔴 IG Blocked`: Instagram HTTP 429 (Rate-limited), 403 (Forbidden), or IP challenge intercept.
+  - `⚪ Offline`: Connection timed out or proxy tunnel refused.
+* **Smart Filtering**: The task queue skips `Blocked` and `Offline` proxies automatically, ensuring tasks only execute over healthy IPs.
+* **Single & Batch Testing**: Click **Ping** next to any proxy, or use **Ping & Verify All Proxies** for parallel multi-threaded testing.
 
 ---
 
@@ -139,84 +212,123 @@ Navigate to the **Settings** view in the sidebar to configure the dynamic parame
 
 ```bash
 instagram_smm_panel/
-├── smm_panel_project/               # Core configurations & root routing
-│   ├── settings.py                  # Cookies hardening, CSP, frame-ancestors
-│   ├── urls.py                      # Django base URLs
+├── smm_panel_project/               # Core Django configuration
+│   ├── settings.py                  # Cookies hardening, SQLite timeout, CSP
+│   ├── urls.py                      # Root URL routing
 │   └── wsgi.py / asgi.py
 │
-├── panel/                           # SMM Panel app
-│   ├── models.py                    # Database tables (Proxy, Account, BotTask, Setting)
-│   ├── views.py                     # Controllers (Stats, CSV imports, Logs API)
-│   ├── forms.py                     # safe inputs validation forms
-│   ├── urls.py                      # App url routes
-│   ├── worker.py                    # Background thread pool queue runner
+├── panel/                           # SMM Panel Application
+│   ├── models.py                    # Schema (Proxy, InstagramAccount, BotTask, GlobalSetting)
+│   ├── views.py                     # View logic (Stats, CSV imports, Proxy checks, Logs API)
+│   ├── forms.py                     # Form definitions with safe input validation
+│   ├── urls.py                      # App routes
+│   ├── worker.py                    # Background queue worker with atomic locking
+│   ├── tests.py                     # Automated unit and integration test suite
 │   │
 │   ├── management/commands/
-│   │   └── run_worker.py            # CLI daemon command (run_worker)
+│   │   └── run_worker.py            # CLI daemon command (manage.py run_worker)
 │   │
 │   ├── templates/panel/             # Dashboard HTML Templates
-│   │   ├── base.html                # Left Sidebar layouts
-│   │   ├── dashboard.html           # Chart widgets
-│   │   ├── accounts.html            # Profile grids & bulk uploads
-│   │   ├── proxies.html             # Scrapers & speed testers
-│   │   ├── targets.html             # Target list (follow/like targets)
-│   │   ├── tasks.html               # Job submission dispatchers
+│   │   ├── base.html                # Sidebar layouts and flash alerts
+│   │   ├── dashboard.html           # Chart.js metrics
+│   │   ├── accounts.html            # Profile grids & CSV bulk tools
+│   │   ├── proxies.html             # Proxy health table, ping actions, scraper
+│   │   ├── targets.html             # Engagement targets manager
+│   │   ├── tasks.html               # Job submission dispatcher
 │   │   ├── task_detail.html         # Live streaming console log
-│   │   └── settings.html            # Credentials management forms
+│   │   └── settings.html            # Dynamic credentials manager
 │   │
-│   └── bot_logic/                   # Automation modules (Refactored)
-│       ├── browser.py               # Playwright browser setups
-│       ├── human_behavior.py        # keystroke human behaviors
-│       ├── account_creator.py       # signup automation sequence
+│   └── bot_logic/                   # Automation Modules
+│       ├── browser.py               # Playwright browser launcher with stealth & fallback
+│       ├── human_behavior.py        # Keystroke typing simulation & randomized waits
+│       ├── account_creator.py       # Registration sequence with code/link handling
 │       ├── social_actions.py        # Follow, Like, and Comment controls
-│       ├── captcha_solver.py        # CapMonster API solvers
-│       ├── sms_handler.py           # 5sim endpoint integrations
-│       ├── email_verifier.py        # 1secmail inbox polling
-│       ├── proxy_scraper.py         # Scraping sslproxies.org
+│       ├── proxy_scraper.py         # Scraping sslproxies.org & parallel health checker
+│       ├── email_verifier.py        # Mail.tm REST inbox verification
+│       ├── sms_handler.py           # 5sim / SMS-Activate API handler
+│       ├── captcha_solver.py        # CapMonster ReCAPTCHA solver
 │       └── helper.py                # Unique credentials helpers
 │
 ├── static/css/
-│   └── styles.css                   # Custom responsive styling
-└── requirements.txt                 # Project dependencies list
+│   └── styles.css                   # Responsive white-mode theme styles
+├── instruction.md                   # Complete local setup & troubleshooting guide
+└── requirements.txt                 # Pinned dependencies
 ```
 
 ---
 
-## 🔒 Security & Best Practices
+## 🔒 Security & Concurrency Design
 
-This setup has been developed strictly adhering to secure coding guidelines:
-* **Framework Auto-Escaping**: All template variables are escaped by default to mitigate Cross-Site Scripting (XSS).
+* **Resource Leak Prevention**: All browser contexts, pages, and Playwright instances are closed inside nested `try...finally` scopes to prevent zombie browser processes.
 * **Safe Session Management**: Session and CSRF cookies are set to `HttpOnly` with strict `SameSite=Lax` parameters to prevent token theft and clickjacking.
-* **Prepared Queries**: The project avoids string formatting queries, leveraging Django's database ORM parameterization to prevent SQL injection.
-* **Resource Cleanup**: Browser context sessions, pages, and playwright instances are closed in nested `try...finally` scopes to ensure memory is freed up correctly.
+* **Prepared SQL Queries**: Leverages Django's ORM parameterization to eliminate SQL injection risks.
+* **Atomic Queue Claiming**: Eliminates worker race conditions and table contention using atomic SQL updates.
 
 ---
 
-## 📦 Production Deployment
+## 📦 Production Deployment & Systemd
 
-For production deployments:
-1. Turn off debug mode in `settings.py` or set the env var `DJANGO_DEBUG=False`.
-2. Generate a secure secret key and set it inside `DJANGO_SECRET_KEY` environment variable.
-3. Configure `ALLOWED_HOSTS` to match your domain name.
-4. Run the Django app using Gunicorn:
+For production servers (Debian/Ubuntu/RHEL):
+
+1. **Environment Setup**
    ```bash
-   gunicorn smm_panel_project.wsgi:application --bind 127.0.0.1:8000
+   export DJANGO_DEBUG=False
+   export DJANGO_SECRET_KEY="your-secure-random-secret-key"
+   export ALLOWED_HOSTS="yourdomain.com,127.0.0.1"
    ```
-5. Set up a systemd daemon service for the background worker (`run_worker`).
+
+2. **Web Server Service (`/etc/systemd/system/smm_web.service`)**
+   ```ini
+   [Unit]
+   Description=Instagram SMM Panel Web Dashboard
+   After=network.target
+
+   [Service]
+   User=www-data
+   WorkingDirectory=/var/www/instagram_smm_panel
+   ExecStart=/var/www/instagram_smm_panel/venv/bin/gunicorn smm_panel_project.wsgi:application --bind 127.0.0.1:8000 --workers 3
+   Restart=always
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+3. **Background Worker Service (`/etc/systemd/system/smm_worker.service`)**
+   ```ini
+   [Unit]
+   Description=Instagram SMM Panel Task Worker
+   After=network.target
+
+   [Service]
+   User=www-data
+   WorkingDirectory=/var/www/instagram_smm_panel
+   ExecStart=/var/www/instagram_smm_panel/venv/bin/python manage.py run_worker
+   Restart=always
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+4. **Enable and Start Services**
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable --now smm_web smm_worker
+   ```
 
 ---
 
 ## 🤝 Contributing
 
-We welcome pull requests! Feel free to:
-1. Fork this Repository.
-2. Create a feature branch (`git checkout -b feature/NewAwesomeFeature`).
-3. Commit your changes (`git commit -m 'Add some NewAwesomeFeature'`).
-4. Push to the branch (`git push origin feature/NewAwesomeFeature`).
+Contributions, bug reports, and suggestions are welcome!
+
+1. Fork the Project.
+2. Create your Feature Branch (`git checkout -b feature/NewFeature`).
+3. Commit your Changes (`git commit -m 'Add NewFeature'`).
+4. Push to the Branch (`git push origin feature/NewFeature`).
 5. Open a Pull Request.
 
 ---
 
 ## ⚖️ License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License. See `LICENSE` for more details.

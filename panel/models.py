@@ -1,12 +1,22 @@
 from django.db import models
 
 class Proxy(models.Model):
+    STATUS_CHOICES = [
+        ('clean', 'Clean / Active'),
+        ('slow', 'Slow Response'),
+        ('blocked', 'Instagram Blocked'),
+        ('offline', 'Offline / Unreachable'),
+        ('untested', 'Untested'),
+    ]
+
     ip = models.CharField(max_length=100)
     port = models.IntegerField()
     protocol = models.CharField(max_length=10, default='http')  # http or https
     username = models.CharField(max_length=100, blank=True, null=True)
     password = models.CharField(max_length=100, blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    health_status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='untested')
+    error_message = models.CharField(max_length=255, blank=True, null=True)
     speed = models.FloatField(blank=True, null=True, help_text="Response time in seconds")
     last_checked = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

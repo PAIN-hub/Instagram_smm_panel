@@ -12,7 +12,7 @@ from datetime import timedelta
 from panel.models import InstagramAccount, Proxy, EngagementTarget, BotTask
 from panel.forms import AccountForm, ProxyForm, TargetForm, TaskForm, ImportCSVForm, SettingsForm
 from panel.bot_logic.settings_helper import get_all_settings, set_setting
-from panel.bot_logic.proxy_scraper import scrape_sslproxies, test_proxy
+from panel.bot_logic.proxy_scraper import scrape_sslproxies, test_proxy, test_all_proxies_concurrently
 from panel.worker import start_worker_thread
 
 def ensure_worker():
@@ -212,12 +212,22 @@ def trigger_scrape_proxies(request):
     return redirect('proxies_list')
 
 def trigger_test_proxies(request):
+    proxy_ids = list(Proxy.objects.values_list('id', flat=True))
     def run_tests():
-        for p in Proxy.objects.all():
-            test_proxy(p)
+        test_all_proxies_concurrently(proxy_ids=proxy_ids)
             
     threading.Thread(target=run_tests, daemon=True).start()
-    messages.success(request, "Verification check started for all proxies in the background.")
+    messages.success(request, f"Parallel Instagram health checks launched for {len(proxy_ids)} proxies in the background.")
+    return redirect('proxies_list')
+
+def test_single_proxy(request, proxy_id):
+    proxy = get_object_or_404(Proxy, pk=proxy_id)
+    is_active, status = test_proxy(proxy)
+    if is_active:
+        messages.success(request, f"Proxy {proxy.ip}:{proxy.port} is {proxy.get_health_status_display()} ({proxy.speed}s latency).")
+    else:
+        err = f" - {proxy.error_message}" if proxy.error_message else ""
+        messages.warning(request, f"Proxy {proxy.ip}:{proxy.port} is {proxy.get_health_status_display()}{err}.")
     return redirect('proxies_list')
 
 # ----------------- Targets Manager -----------------

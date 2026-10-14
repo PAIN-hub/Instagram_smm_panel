@@ -60,10 +60,16 @@ def scrape_sslproxies(limit=50):
         
     return proxies_created
 
-def test_proxy(proxy):
+import concurrent.futures
+
+def test_proxy(proxy, timeout=8):
     """
-    Tests proxy connection speed and active status against instagram.com.
-    Updates the database row.
+    Performs an Instagram-specific health check and handshake latency test on the proxy.
+    Categorizes the proxy into:
+      - 'clean': Active, fast response (< 2.5s), no rate-limiting or blocks
+      - 'slow': Active, higher latency (>= 2.5s)
+      - 'blocked': Instagram 429 Too Many Requests, 403 Forbidden, or challenge page
+      - 'offline': Connection timeout, refused, SSL failure, or proxy down
     """
     auth_part = f"{proxy.username}:{proxy.password}@" if proxy.username and proxy.password else ""
     proxy_url = f"{proxy.protocol}://{auth_part}{proxy.ip}:{proxy.port}"
@@ -73,18 +79,106 @@ def test_proxy(proxy):
         "https": proxy_url
     }
     
-    start_time = time.time()
+    headers = {
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+    }
+    
+    start_time = time.perf_counter()
     try:
-        # Use a short timeout to prevent blocking worker threads
-        response = requests.get("https://www.instagram.com", proxies=proxies, timeout=7)
-        if response.status_code == 200:
-            proxy.speed = round(time.time() - start_time, 2)
-            proxy.is_active = True
+        response = requests.get(
+            "https://www.instagram.com",
+            proxies=proxies,
+            headers=headers,
+            timeout=timeout,
+            allow_redirects=True
+        )
+        latency = round(time.perf_counter() - start_time, 2)
+        proxy.speed = latency
+        proxy.last_checked = timezone.now()
+
+        if response.status_code in [200, 301, 302]:
+            body_sample = response.text[:2000].lower()
+            if "checkpoint_required" in body_sample or "action blocked" in body_sample or "ip_blocked" in body_sample:
+                proxy.is_active = False
+                proxy.health_status = 'blocked'
+                proxy.error_message = "Instagram IP Challenge/Block detected"
+            elif latency < 2.5:
+                proxy.is_active = True
+                proxy.health_status = 'clean'
+                proxy.error_message = None
+            else:
+                proxy.is_active = True
+                proxy.health_status = 'slow'
+                proxy.error_message = f"High latency ({latency}s)"
+        elif response.status_code in [429, 403]:
+            proxy.is_active = False
+            proxy.health_status = 'blocked'
+            proxy.error_message = f"Instagram HTTP {response.status_code} Blocked / Rate-Limited"
         else:
             proxy.is_active = False
-    except Exception:
+            proxy.health_status = 'blocked'
+            proxy.error_message = f"Instagram returned HTTP {response.status_code}"
+    except requests.exceptions.ConnectTimeout:
+        proxy.speed = None
         proxy.is_active = False
-        
+        proxy.health_status = 'offline'
+        proxy.error_message = f"Connection timed out (>{timeout}s)"
+    except requests.exceptions.ReadTimeout:
+        proxy.speed = None
+        proxy.is_active = False
+        proxy.health_status = 'offline'
+        proxy.error_message = f"Read timed out (>{timeout}s)"
+    except requests.exceptions.ProxyError:
+        proxy.speed = None
+        proxy.is_active = False
+        proxy.health_status = 'offline'
+        proxy.error_message = "Proxy tunnel / connection failed"
+    except Exception as e:
+        proxy.speed = None
+        proxy.is_active = False
+        proxy.health_status = 'offline'
+        proxy.error_message = str(e)[:150]
+
     proxy.last_checked = timezone.now()
     proxy.save()
-    return proxy.is_active
+    return proxy.is_active, proxy.health_status
+
+def test_all_proxies_concurrently(proxy_ids=None, max_workers=5):
+    """
+    Tests multiple proxies in parallel using a thread pool with per-thread DB connection handling.
+    """
+    from django.db import connection
+    
+    if proxy_ids is None:
+        try:
+            proxy_ids = list(Proxy.objects.values_list('id', flat=True))
+        finally:
+            connection.close()
+        
+    if not proxy_ids:
+        return 0
+
+    def _worker(pid):
+        from django.db import connection
+        try:
+            p = Proxy.objects.get(id=pid)
+            test_proxy(p)
+        except Exception as e:
+            print(f"[PROXY_TEST] Error checking proxy {pid}: {e}")
+        finally:
+            connection.close()
+
+    tested_count = 0
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(_worker, pid) for pid in proxy_ids]
+        for future in concurrent.futures.as_completed(futures):
+            try:
+                future.result()
+                tested_count += 1
+            except Exception:
+                pass
+
+    return tested_count
+

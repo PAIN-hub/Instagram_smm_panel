@@ -71,7 +71,7 @@ class SettingsForm(forms.Form):
         widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Enter SMS Service API Key'})
     )
     email_service = forms.ChoiceField(
-        choices=[('1secmail', '1secmail.com'), ('mailtm', 'Mail.tm')], 
+        choices=[('mailtm', 'Mail.tm (Recommended)'), ('1secmail', '1secmail.com (Legacy)')], 
         widget=forms.Select(attrs={'class': 'form-select'})
     )
     use_random_user_agent = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-checkbox'}))
@@ -80,12 +80,12 @@ class SettingsForm(forms.Form):
     wait_range_max = forms.IntegerField(min_value=0, max_value=60, widget=forms.NumberInput(attrs={'class': 'form-input'}))
     
     browser_type = forms.ChoiceField(
-        choices=[('firefox', 'Firefox'), ('chromium', 'Chromium')], 
+        choices=[('chromium', 'Chromium / Google Chrome (Recommended)'), ('firefox', 'Firefox')], 
         widget=forms.Select(attrs={'class': 'form-select'})
     )
     browser_path = forms.CharField(
         max_length=300, 
         required=False, 
-        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. /usr/bin/firefox'})
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Leave empty for auto-detection (e.g. /usr/bin/google-chrome)'})
     )
     headless_mode = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-checkbox'}))

@@ -15,6 +15,7 @@ urlpatterns = [
     path('proxies/delete/<int:proxy_id>/', views.delete_proxy, name='delete_proxy'),
     path('proxies/scrape/', views.trigger_scrape_proxies, name='trigger_scrape_proxies'),
     path('proxies/test/', views.trigger_test_proxies, name='trigger_test_proxies'),
+    path('proxies/test/<int:proxy_id>/', views.test_single_proxy, name='test_single_proxy'),
     
     # Targets
     path('targets/', views.targets_list, name='targets_list'),

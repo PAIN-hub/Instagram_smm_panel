@@ -36,24 +36,28 @@ def stop_worker_thread():
 def worker_loop():
     while _worker_running:
         try:
-            # Query for the next pending task
-            task = BotTask.objects.filter(status='pending').order_by('created_at').first()
+            # Atomically query and claim the next pending task
+            pending_task = BotTask.objects.filter(status='pending').order_by('created_at').first()
             
-            if task:
-                process_task(task)
+            if pending_task:
+                claimed = BotTask.objects.filter(id=pending_task.id, status='pending').update(
+                    status='running',
+                    started_at=timezone.now()
+                )
+                if claimed > 0:
+                    task = BotTask.objects.get(id=pending_task.id)
+                    process_task(task)
             else:
-                time.sleep(3) # No tasks, sleep for a short interval
+                time.sleep(2) # No tasks, sleep for a short interval
                 
         except Exception as e:
             print(f"[WORKER] Error in main loop: {e}")
-            time.sleep(5)
+            time.sleep(3)
         finally:
             # Clean up Django database connections in long-running threads
             connection.close()
 
 def process_task(task: BotTask):
-    task.status = 'running'
-    task.started_at = timezone.now()
     task.logs = f"{timezone.now().strftime('%Y-%m-%d %H:%M:%S')} | Task marked RUNNING.\n"
     task.save()
 
@@ -74,9 +78,13 @@ def process_task(task: BotTask):
         # If the account has a proxy, use it
         if task.account and task.account.proxy:
             proxy_obj = task.account.proxy
-        # Otherwise, check if we should rotate and pick an active proxy from DB
+        # Otherwise, check if we should rotate and pick an active, non-blocked proxy from DB
         elif get_setting("rotate_proxies", "True").lower() == 'true':
-            proxy_obj = Proxy.objects.filter(is_active=True).order_by('?').first()
+            # Prioritize verified clean proxies first
+            proxy_obj = Proxy.objects.filter(is_active=True, health_status='clean').order_by('?').first()
+            if not proxy_obj:
+                # Fallback to untested active proxies (excluding blocked/offline)
+                proxy_obj = Proxy.objects.filter(is_active=True).exclude(health_status__in=['blocked', 'offline']).order_by('?').first()
 
         if proxy_obj:
             auth_part = f"{proxy_obj.username}:{proxy_obj.password}@" if proxy_obj.username and proxy_obj.password else ""
@@ -119,43 +127,55 @@ def process_task(task: BotTask):
             account = task.account
             log(f"Executing engagement action using account @{account.username}...")
             
-            # Launch browser
-            playwright_instance, browser, context, page = launch_browser(
-                proxy=proxy_url,
-                headless=None
-            )
-            
-            # Log in
-            logged_in = instagram_login(page, account.username, account.password, logger=log)
-            if not logged_in:
-                # Update account status to verification needed
-                account.status = 'verification_needed'
+            playwright_instance = None
+            browser = None
+            context = None
+            page = None
+            try:
+                # Launch browser
+                playwright_instance, browser, context, page = launch_browser(
+                    proxy=proxy_url,
+                    headless=None
+                )
+                
+                # Log in
+                logged_in = instagram_login(page, account.username, account.password, logger=log)
+                if not logged_in:
+                    account.status = 'verification_needed'
+                    account.save()
+                    raise Exception("Authentication failed on Instagram login page.")
+                    
+                # Perform action
+                success = False
+                if task.task_type == 'follow':
+                    success = follow_user(page, task.target, logger=log)
+                elif task.task_type == 'like':
+                    success = like_latest_post(page, task.target, logger=log)
+                elif task.task_type == 'comment':
+                    if not task.comment_text:
+                        task.comment_text = "Nice post! 🔥"
+                    success = comment_on_post(page, task.target, task.comment_text, logger=log)
+                    
+                if not success:
+                    raise Exception(f"Action '{task.get_task_type_display()}' was executed but returned failure state.")
+                    
+                # Update account last used
+                account.last_used = timezone.now()
                 account.save()
-                raise Exception("Authentication failed on Instagram login page.")
-                
-            # Perform action
-            success = False
-            if task.task_type == 'follow':
-                success = follow_user(page, task.target, logger=log)
-            elif task.task_type == 'like':
-                success = like_latest_post(page, task.target, logger=log)
-            elif task.task_type == 'comment':
-                if not task.comment_text:
-                    task.comment_text = "Nice post! 🔥"
-                success = comment_on_post(page, task.target, task.comment_text, logger=log)
-                
-            if not success:
-                raise Exception(f"Action '{task.get_task_type_display()}' was executed but returned failure state.")
-                
-            # Close browser cleanly
-            page.close()
-            context.close()
-            browser.close()
-            playwright_instance.stop()
-            
-            # Update account last used
-            account.last_used = timezone.now()
-            account.save()
+            finally:
+                # Ensure all browser resources are safely terminated
+                if page:
+                    try: page.close()
+                    except Exception: pass
+                if context:
+                    try: context.close()
+                    except Exception: pass
+                if browser:
+                    try: browser.close()
+                    except Exception: pass
+                if playwright_instance:
+                    try: playwright_instance.stop()
+                    except Exception: pass
 
         # Mark task completed
         task.status = 'completed'

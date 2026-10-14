@@ -5,13 +5,13 @@ DEFAULTS = {
     'captcha_api_key': 'YOUR_CAPMONSTER_API_KEY',
     'sms_service': '5sim',
     'sms_api_key': 'YOUR_5SIM_API_KEY',
-    'email_service': '1secmail',
+    'email_service': 'mailtm',
     'use_random_user_agent': 'True',
     'rotate_proxies': 'True',
     'wait_range_min': '2',
     'wait_range_max': '6',
-    'browser_type': 'firefox',       # Defaulting to firefox since it is pre-installed on this host
-    'browser_path': '/usr/bin/firefox', # Absolute path to firefox on host
+    'browser_type': 'chromium',      # Defaulting to chromium for stability and anti-detection
+    'browser_path': '',              # Auto-detected if empty; never force stock /usr/bin/firefox
     'headless_mode': 'True',
 }
 

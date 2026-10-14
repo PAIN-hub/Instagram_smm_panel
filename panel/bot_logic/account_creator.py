@@ -101,29 +101,45 @@ class AccountCreator:
                 page.click('button[type="submit"]')
                 random_wait()
 
-            # Check if email verification code is requested
-            self.log("Checking if email verification link is required...")
+            # Check if email verification code or link is requested
+            self.log("Checking for email verification prompts...")
             try:
-                # Check for verification email from 1secmail and click confirmation link
-                verify_url = self.email_verifier.get_verification_link()
-                self.log(f"Navigating to confirmation URL: {verify_url}")
-                page.goto(verify_url)
-                random_wait()
-                self.log("Email confirmation completed.")
+                link, code = self.email_verifier.get_verification_content(timeout=60)
+                code_locator = None
+                for sel in ['input[name="email_digest"]', 'input[name="confirmationCode"]', 'input[aria-label*="Code"]', 'input[type="tel"]']:
+                    if page.locator(sel).count() > 0:
+                        code_locator = page.locator(sel).first
+                        break
+                        
+                if code and code_locator:
+                    self.log(f"Entering email confirmation code: {code}")
+                    code_locator.fill(code)
+                    if page.locator('button[type="submit"]').count() > 0:
+                        page.click('button[type="submit"]')
+                    else:
+                        page.keyboard.press("Enter")
+                    random_wait()
+                elif link:
+                    self.log(f"Navigating to confirmation URL: {link}")
+                    page.goto(link)
+                    random_wait()
+                    self.log("Email confirmation completed.")
             except Exception as e:
                 self.log(f"Email verification step completed or skipped: {e}")
 
             # Complete registration check
             self.log("Waiting for signup finalization...")
-            page.wait_for_timeout(10000)
+            page.wait_for_timeout(6000)
             
             # Save account to Django Database
-            account = InstagramAccount.objects.create(
+            account, created = InstagramAccount.objects.update_or_create(
                 username=self.username,
-                password=self.password,
-                email=self.email,
-                phone=phone_number if is_phone_verification else "",
-                status='active'
+                defaults={
+                    'password': self.password,
+                    'email': self.email,
+                    'phone': phone_number if is_phone_verification else "",
+                    'status': 'active'
+                }
             )
             
             self.log(f"✅ Instagram account @{self.username} created and saved successfully.")

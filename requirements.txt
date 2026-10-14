@@ -1,10 +1,10 @@
 # Core dependencies
-playwright==1.44.0
-beautifulsoup4==4.12.3
-requests==2.32.3
-PyYAML==6.0.1
-python-dotenv==1.0.1
+playwright>=1.48.0
+beautifulsoup4>=4.12.3
+requests>=2.32.3
+PyYAML>=6.0.1
+python-dotenv>=1.0.1
 
 # Django
-django>=5.0,<5.1
+django>=5.0,<5.2
 django-cors-headers>=4.0.0
