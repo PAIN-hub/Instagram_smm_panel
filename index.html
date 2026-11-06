@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instagram SMM Panel - Automated Social Media Management & Bot Orchestration</title>
+  <meta name="description" content="An enterprise-grade, fully automated Instagram Social Media Marketing (SMM) Panel and bot management system engineered with Django and Playwright.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --bg-card: #111827;
+      --bg-card-hover: #1e293b;
+      --accent-primary: #3b82f6;
+      --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+      --accent-ig: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --border-color: #1e293b;
+      --border-highlight: #334155;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Background glow decorations */
+    .glow-bg {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1000px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.1) 40%, transparent 70%);
+      filter: blur(80px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Navbar */
+    nav {
+      position: sticky;
+      top: 0;
+      background: rgba(11, 15, 25, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      z-index: 1000;
+      padding: 16px 0;
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+
+    .nav-logo-icon {
+      width: 38px;
+      height: 38px;
+      background: var(--accent-ig);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(220, 39, 67, 0.4);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: color 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--text-main);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--accent-primary);
+      color: white;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-primary:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+    }
+
+    .btn-secondary {
+      background: #1e293b;
+      color: var(--text-main);
+      border: 1px solid var(--border-highlight);
+    }
+
+    .btn-secondary:hover {
+      background: #334155;
+      color: white;
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 100px 0 60px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border-radius: 9999px;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #60a5fa;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.25rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 24px;
+      background: linear-gradient(to right, #ffffff, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero h1 span.gradient-text {
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      max-width: 780px;
+      margin: 0 auto 36px;
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 48px;
+      flex-wrap: wrap;
+    }
+
+    .badges-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 60px;
+    }
+
+    .badges-row img {
+      height: 28px;
+      border-radius: 4px;
+    }
+
+    /* Terminal Preview */
+    .terminal-window {
+      background: #0d1117;
+      border: 1px solid var(--border-highlight);
+      border-radius: var(--radius-lg);
+      max-width: 860px;
+      margin: 0 auto;
+      text-align: left;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    }
+
+    .terminal-header {
+      background: #161b22;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+
+    .terminal-title {
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      margin-left: 8px;
+    }
+
+    .terminal-body {
+      padding: 24px;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: #e2e8f0;
+      line-height: 1.6;
+      overflow-x: auto;
+    }
+
+    .terminal-line {
+      margin-bottom: 8px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .cmd-prompt { color: #38bdf8; user-select: none; }
+    .cmd-text { color: #f8fafc; font-weight: 500; }
+    .log-success { color: #34d399; }
+    .log-info { color: #60a5fa; }
+    .log-warn { color: #fbbf24; }
+
+    /* Section Styles */
+    section {
+      padding: 90px 0;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .section-tag {
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent-primary);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    /* What it does: Grid */
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 32px 24px;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-highlight);
+      transform: translateY(-4px);
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      color: var(--accent-primary);
+    }
+
+    .card h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text-main);
+    }
+
+    .card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 16px;
+      flex-grow: 1;
+    }
+
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 16px;
+    }
+
+    .feature-list li {
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-list li svg {
+      width: 16px;
+      height: 16px;
+      stroke: var(--success);
+      flex-shrink: 0;
+    }
+
+    /* How it does it: Workflow Timeline */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 28px;
+      top: 24px;
+      bottom: 24px;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--accent-primary), var(--border-color));
+      z-index: 0;
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .timeline-num {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #0f172a;
+      border: 2px solid var(--accent-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #60a5fa;
+      flex-shrink: 0;
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.3);
+    }
+
+    .timeline-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px 28px;
+      flex-grow: 1;
+    }
+
+    .timeline-content h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .timeline-content p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+    }
+
+    .code-pill {
+      display: inline-block;
+      font-family: var(--font-mono);
+      background: #0f172a;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-highlight);
+      font-size: 0.85rem;
+      color: #38bdf8;
+    }
+
+    /* Upgrades & Roadmap */
+    .upgrades-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+    }
+
+    .upgrade-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .upgrade-card:hover {
+      border-color: #8b5cf6;
+      box-shadow: 0 8px 30px rgba(139, 92, 246, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .upgrade-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+    }
+
+    .badge-high { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-ai { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .badge-core { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+
+    .upgrade-card h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .upgrade-card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+
+    .upgrade-impact {
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      border-top: 1px dashed var(--border-color);
+      padding-top: 12px;
+      display: flex;
+      gap: 6px;
+    }
+    .upgrade-impact strong { color: #a7f3d0; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-color);
+      padding: 50px 0 30px;
+      background: #080b12;
+      color: var(--text-dim);
+      font-size: 0.9rem;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--text-main);
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .timeline::before { left: 20px; }
+      .timeline-num { width: 42px; height: 42px; font-size: 1rem; }
+      .section-title { font-size: 1.85rem; }
+      .hero h1 { font-size: 2.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-bg"></div>
+
+  <!-- Navbar -->
+  <nav>
+    <div class="container nav-inner">
+      <a href="#" class="nav-logo">
+        <div class="nav-logo-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+        </div>
+        <span>Instagram SMM Panel</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#what-it-does">What It Does</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#upgrades">Suggested Upgrades</a></li>
+        <li><a href="#quickstart">Quick Start</a></li>
+      </ul>
+      <div>
+        <a href="https://github.com/PAIN-hub/Instagram_smm_panel" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+          </svg>
+          GitHub Repo
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="container">
+      <div class="hero-badge">
+        <span>⚡ High-Performance Instagram Automation & Telemetry</span>
+      </div>
+      <h1>
+        Next-Generation <span class="gradient-text">Instagram SMM</span><br>
+        Automation & Fleet Controller
+      </h1>
+      <p>
+        An enterprise-grade, fully automated Instagram bot management system built on <strong>Django</strong> and <strong>Playwright</strong>. Orchestrate account registration, solve CAPTCHAs &amp; SMS verifications, maintain rotating proxy pools, and automate targeted engagement with zero race conditions.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#what-it-does" class="btn btn-primary">
+          Explore Features
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </a>
+        <a href="https://github.com/PAIN-hub/Instagram_smm_panel" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+          View on GitHub
+        </a>
+      </div>
+
+      <div class="badges-row">
+        <img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python Versions">
+        <img src="https://img.shields.io/badge/Django-5.0%20%7C%205.1-092E20?style=for-the-badge&logo=django&logoColor=white" alt="Django Versions">
+        <img src="https://img.shields.io/badge/Playwright-Automated%20Chromium-2EAD5F?style=for-the-badge&logo=playwright&logoColor=white" alt="Playwright">
+        <img src="https://img.shields.io/badge/Docker-Compose%20Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Ready">
+        <img src="https://img.shields.io/badge/Tests-8%20Passed-success?style=for-the-badge&logo=pytest&logoColor=white" alt="Tests">
+        <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="MIT License">
+      </div>
+
+      <!-- Live Terminal Snapshot -->
+      <div class="terminal-window">
+        <div class="terminal-header">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <span class="terminal-title">smm_worker.daemon — playwright automation console</span>
+        </div>
+        <div class="terminal-body">
+          <div class="terminal-line"><span class="cmd-prompt">$</span> <span class="cmd-text">python manage.py run_worker</span></div>
+          <div class="terminal-line log-info">[WORKER] Atomic daemon initialized. Polling pending tasks...</div>
+          <div class="terminal-line log-info">[TASK #412] Claimed atomically: REGISTER_ACCOUNT (Target: Organic Pool)</div>
+          <div class="terminal-line log-warn">[PROXY] Handshake ping to https://www.instagram.com: 184ms [Clean / Fast]</div>
+          <div class="terminal-line">[BROWSER] Launching Chromium with stealth CDP flags (headless=True)...</div>
+          <div class="terminal-line">[MAIL.TM] Disposable inbox registered &rarr; Waiting for Instagram verification code...</div>
+          <div class="terminal-line log-success">[MAIL.TM] Received verification OTP [849201]. Submitting form...</div>
+          <div class="terminal-line log-success">[SESSION] Storage state persisted to session_cookies/acc_412.json. Complete!</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- What It Does Section -->
+  <section id="what-it-does">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Core Capabilities</div>
+        <h2 class="section-title">What It Does</h2>
+        <p class="section-desc">Everything needed to scale an autonomous Instagram fleet with high survivability and anti-ban safeguards.</p>
+      </div>
+
+      <div class="grid-4">
+        <!-- Card 1 -->
+        <div class="card">
+          <div class="card-icon">🤖</div>
+          <h3>Automated Registration</h3>
+          <p>Full autonomous signup pipeline that generates human metadata, handles form submission, and overcomes verification checkpoints.</p>
+          <ul class="feature-list">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Mail.tm code &amp; link extraction</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> 5sim &amp; SMS-Activate APIs</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> CapMonster ReCAPTCHA solver</li>
+          </ul>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="card">
+          <div class="card-icon">🚀</div>
+          <h3>Targeted Engagement</h3>
+          <p>Dispatches high-frequency social actions across active accounts with organic delay simulation to boost credibility.</p>
+          <ul class="feature-list">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Mass Follow target profiles</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Post-level Like media interactions</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Natural comment drop dispatcher</li>
+          </ul>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="card">
+          <div class="card-icon">🛡️</div>
+          <h3>Smart Proxy Health Engine</h3>
+          <p>Built-in proxy harvester and latency validator testing live connections directly against Instagram endpoints before launching actions.</p>
+          <ul class="feature-list">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Automatic SSL proxy scraper</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Real IG handshake ping tests</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Auto-filtering of 429/403 blocked IPs</li>
+          </ul>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="card">
+          <div class="card-icon">📊</div>
+          <h3>Telemetry &amp; Management</h3>
+          <p>Real-time analytics dashboard with Chart.js visualizations, bulk CSV account imports/exports, and live Playwright execution streaming.</p>
+          <ul class="feature-list">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Live streaming terminal container</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Bulk CSV roster import &amp; export</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Session cookie caching in JSON</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section id="how-it-works">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">System Mechanics</div>
+        <h2 class="section-title">How It Works (Under the Hood)</h2>
+        <p class="section-desc">An event-driven orchestration pipeline engineered for concurrency safety, anti-detection evasion, and state persistence.</p>
+      </div>
+
+      <div class="timeline">
+        <!-- Step 1 -->
+        <div class="timeline-item">
+          <div class="timeline-num">1</div>
+          <div class="timeline-content">
+            <h3>Job Dispatch &amp; Atomic Task Claiming</h3>
+            <p>
+              When a task is submitted via Web UI or automated scheduler, it lands in the database as <code>pending</code>. Standalone worker threads poll the queue and execute an atomic update query:
+            </p>
+            <div class="code-pill">UPDATE panel_bottask SET status='running' WHERE id=:id AND status='pending'</div>
+            <p style="margin-top: 10px; font-size: 0.85rem; color: var(--text-dim);">
+              This eliminates SQLite double-dispatch race conditions across multiple daemon processes or threads.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="timeline-item">
+          <div class="timeline-num">2</div>
+          <div class="timeline-content">
+            <h3>Pre-Flight Proxy Validation &amp; Routing</h3>
+            <p>
+              Before launching a browser instance, the task worker queries the proxy pool and evaluates handshake health. Any proxy classified as <code>IG Blocked</code> (HTTP 429/403) or <code>Offline</code> is omitted. Only verified <code>Clean / Fast</code> proxies are attached to Playwright's network stack.
+            </p>
+            <div class="code-pill">Playwright Proxy Config: http://user:pass@host:port</div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="timeline-item">
+          <div class="timeline-num">3</div>
+          <div class="timeline-content">
+            <h3>Stealth Playwright Chromium Execution</h3>
+            <p>
+              Playwright launches Chromium or system Chrome with deep stealth flags. Automation indicators like <code>--disable-blink-features=AutomationControlled</code> are removed, <code>navigator.webdriver = undefined</code> is enforced, and keystrokes are dispatched with natural human jitter.
+            </p>
+            <div class="code-pill">human_behavior.py: type_with_delay(selector, text, min_ms, max_ms)</div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="timeline-item">
+          <div class="timeline-num">4</div>
+          <div class="timeline-content">
+            <h3>Cookie Storage State &amp; Clean Teardown</h3>
+            <p>
+              Successful sessions persist their full browser context storage states into <code>session_cookies/{account_id}.json</code>. Future engagement jobs reuse this storage state, skipping login checks. All resources, contexts, and pages are closed inside nested <code>try...finally</code> scopes to prevent zombie processes.
+            </p>
+            <div class="code-pill">context.storage_state(path=f"session_cookies/{account.id}.json")</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Suggested Upgrades & Roadmap -->
+  <section id="upgrades">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Architecture Roadmap</div>
+        <h2 class="section-title">💡 Suggested Upgrades</h2>
+        <p class="section-desc">High-value architectural recommendations to scale the repository into an enterprise commercial-grade SaaS platform.</p>
+      </div>
+
+      <div class="upgrades-grid">
+        <!-- Upgrade 1 -->
+        <div class="upgrade-card">
+          <span class="upgrade-badge badge-high">High Scalability</span>
+          <h3>1. Celery + Redis Distributed Queue</h3>
+          <p>Transition from database thread polling to a distributed Celery message broker backed by Redis or RabbitMQ. Enables horizontal scaling across multiple VPS worker nodes with dedicated priority queues.</p>
+          <div class="upgrade-impact"><strong>Impact:</strong> Run 1,000+ simultaneous browser jobs across distributed nodes.</div>
+        </div>
+
+        <!-- Upgrade 2 -->
+        <div class="upgrade-card">
+          <span class="upgrade-badge badge-high">Anti-Detection</span>
+          <h3>2. Fingerprint &amp; Canvas/WebGL Spoofing</h3>
+          <p>Integrate specialized anti-detect libraries (or headless integration with Dolphin{anty} / AdsPower) to randomize Canvas 2D hashes, WebGL vendor strings, AudioContext, and WebRTC leaks.</p>
+          <div class="upgrade-impact"><strong>Impact:</strong> Decreases Instagram account challenge rates by &gt;70%.</div>
+        </div>
+
+        <!-- Upgrade 3 -->
+        <div class="upgrade-card">
+          <span class="upgrade-badge badge-core">Security</span>
+          <h3>3. Native 2FA (TOTP / pyotp) Support</h3>
+          <p>Incorporate a <code>totp_secret</code> schema in accounts to automatically solve two-factor authentication prompts when sessions expire, and lock created accounts with 2FA to prevent bans.</p>
+          <div class="upgrade-impact"><strong>Impact:</strong> Zero checkpoint lockouts when session cookies expire.</div>
+        </div>
+
+        <!-- Upgrade 4 -->
+        <div class="upgrade-card">
+          <span class="upgrade-badge badge-ai">AI Integration</span>
+          <h3>4. LLM-Powered Contextual Comments</h3>
+          <p>Integrate OpenAI / Claude / local Ollama models to inspect target post captions and image descriptions, generating human-like, unique, context-aware comments rather than generic spam strings.</p>
+          <div class="upgrade-impact"><strong>Impact:</strong> Immune to Instagram's repetitive text spam filters.</div>
+        </div>
+
+        <!-- Upgrade 5 -->
+        <div class="upgrade-card">
+          <span class="upgrade-badge badge-core">Network</span>
+          <h3>5. 4G/5G Mobile Proxies &amp; Webhook Rotation</h3>
+          <p>Add support for mobile rotating proxies with dynamic IP change URLs (rotation webhooks) that trigger an automatic carrier IP refresh between account switches.</p>
+          <div class="upgrade-impact"><strong>Impact:</strong> Legitimate cellular carrier trust score; zero IP bans.</div>
+        </div>
+
+        <!-- Upgrade 6 -->
+        <div class="upgrade-card">
+          <span class="upgrade-badge badge-core">Commercial</span>
+          <h3>6. Standard SMM Reseller REST API</h3>
+          <p>Expose a standardized API via Django REST Framework compatible with reseller platforms (PerfectPanel, JustAnotherPanel) for automated order submission, balance checking, and status webhooks.</p>
+          <div class="upgrade-impact"><strong>Impact:</strong> Turn this repository directly into a monetizable B2B SMM provider.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Start Section -->
+  <section id="quickstart">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Deployment</div>
+        <h2 class="section-title">🚀 Quick Start in 60 Seconds</h2>
+        <p class="section-desc">Get the complete web dashboard and background queue worker running locally or in Docker.</p>
+      </div>
+
+      <div class="terminal-window">
+        <div class="terminal-header">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <span class="terminal-title">bash — 1-click docker deployment</span>
+        </div>
+        <div class="terminal-body">
+          <div class="terminal-line"><span class="cmd-prompt">#</span> <span style="color: var(--text-dim);">1. Clone the repository</span></div>
+          <div class="terminal-line"><span class="cmd-prompt">$</span> <span class="cmd-text">git clone https://github.com/pain-hub/instagram_smm_panel.git &amp;&amp; cd instagram_smm_panel</span></div>
+          <div class="terminal-line" style="margin-top: 12px;"><span class="cmd-prompt">#</span> <span style="color: var(--text-dim);">2. Spin up Docker containers (Django web + Playwright worker)</span></div>
+          <div class="terminal-line"><span class="cmd-prompt">$</span> <span class="cmd-text">docker compose up -d --build</span></div>
+          <div class="terminal-line" style="margin-top: 12px;"><span class="cmd-prompt">#</span> <span style="color: var(--text-dim);">3. Access the dashboard &amp; stream logs</span></div>
+          <div class="terminal-line log-success">&#10004; Web Dashboard ready at: http://localhost:8000</div>
+          <div class="terminal-line log-info">&#10004; Monitor worker logs: docker compose logs -f</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div>
+          <strong style="color: var(--text-main);">Instagram SMM Panel</strong> — Open-source automation &amp; orchestration platform.
+        </div>
+        <ul class="footer-links">
+          <li><a href="#what-it-does">What It Does</a></li>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="#upgrades">Suggested Upgrades</a></li>
+          <li><a href="https://github.com/PAIN-hub/Instagram_smm_panel" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        </ul>
+      </div>
+      <p style="text-align: center; font-size: 0.8rem; color: var(--text-dim);">
+        Distributed under the MIT License. Built with Django, Playwright &amp; Chart.js.
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
